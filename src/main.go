@@ -5,8 +5,10 @@ import (
 	"app/infra/config"
 	"app/infra/logger"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/line/line-bot-sdk-go/linebot"
 	"github.com/mmcdole/gofeed"
 	"go.uber.org/zap"
 )
@@ -16,12 +18,14 @@ type Feed struct {
 	URL   string
 }
 
+var conf *config.Config
+
 func main() {
 	// initialize
 	logger.Init()
-	conf := config.Init()
+	conf = config.Init()
 
-	var feed []Feed
+	var feeds []Feed
 	for _, Site := range constant.SITE_LIST {
 		logger.Info("Search new feed", zap.String("サイト名", Site.Name))
 		f, err := SearchFeed(Site, time.Duration(conf.Range)*time.Hour)
@@ -29,9 +33,32 @@ func main() {
 			logger.Error("failed to fetch rss", zap.String("サイト名", Site.Name))
 		}
 		logger.Info(fmt.Sprintf("new feed count: %d", len(f)), zap.String("サイト名", Site.Name))
-		feed = append(feed, f...)
+		feeds = append(feeds, f...)
 	}
-	logger.Info(fmt.Sprintf("total feed count: %d", len(feed)))
+	logger.Info(fmt.Sprintf("total feed count: %d", len(feeds)))
+
+	err := pushFeed2Line(feeds)
+	if err != nil {
+		logger.Panic(fmt.Sprintf("failed to push to line: %s", err.Error()))
+	}
+	logger.Info("fin")
+}
+
+func pushFeed2Line(feeds []Feed) error {
+	bot, err := linebot.New(os.Getenv("CHANNEL_SECRET"), os.Getenv("CHANNEL_ACCESS_TOKEN"))
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range feeds {
+		message := linebot.NewTextMessage(feed.Title + "\n\n" + feed.URL)
+
+		_, err = bot.PushMessage(os.Getenv("CHANNEL_ID"), message).Do()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func SearchFeed(site constant.Site, searchRange time.Duration) ([]Feed, error) {

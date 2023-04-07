@@ -14,6 +14,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/line/line-bot-sdk-go v7.8.0+incompatible // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcdole/goxpp v1.1.0 // indirect
