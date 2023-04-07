@@ -54,11 +54,38 @@ func TestSearchFeed(t *testing.T) {
 
 	cases := []struct {
 		testName     string
+		testSite     constant.Site
 		searchRange  time.Duration
 		expectedFeed []Feed
 	}{
 		{
 			testName:    "searchFeedの第2引数の時間範囲内に追加されたコンテンツのみ取得する。",
+			testSite:    testSite,
+			searchRange: time.Hour,
+			expectedFeed: []Feed{
+				{
+					Title: "Test Title 1",
+					URL:   "http://example.com/1",
+				},
+				{
+					Title: "Test Title 2",
+					URL:   "http://example.com/2",
+				},
+			},
+		},
+		{
+			testName:     "searchFeedの第2引数の時間範囲内に追加されたコンテンツが無ければ空配列が返る。",
+			testSite:     testSite,
+			searchRange:  time.Minute,
+			expectedFeed: []Feed{},
+		},
+		{
+			testName: "Siteに登録された時刻フォーマットが誤ったものであってもエラーとならない。",
+			testSite: constant.Site{
+				Name:           "Incorrect DateFormat mock site",
+				URL:            ts.URL,
+				DateTimeFormat: time.RFC3339,
+			},
 			searchRange: time.Hour,
 			expectedFeed: []Feed{
 				{
@@ -75,7 +102,7 @@ func TestSearchFeed(t *testing.T) {
 	for _, tt := range cases {
 		t.Run(tt.testName, func(t *testing.T) {
 
-			actualFeed, err := SearchFeed(testSite, time.Hour)
+			actualFeed, err := SearchFeed(testSite, tt.searchRange)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
