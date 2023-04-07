@@ -14,6 +14,7 @@
         "request": "launch",
         "program": "${workspaceFolder}/src/main.go",
         "env": {},
+        "envFile": "${workspaceFolder}/src/dev.env",
         "args": []
       }
      ]
