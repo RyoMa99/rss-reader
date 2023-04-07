@@ -28,7 +28,7 @@ func TestSearchFeed(t *testing.T) {
 			<title>Test Title 2</title>
 			<link>http://example.com/2</link>
 			<description>Test Description 2</description>
-			<pubDate>` + time.Now().Add(-1*time.Hour).Format(time.RFC1123Z) + `</pubDate>
+			<pubDate>` + time.Now().Add(-50*time.Minute).Format(time.RFC1123Z) + `</pubDate>
 		</item>
 		<item>
 			<title>Test Title 3</title>
@@ -52,21 +52,37 @@ func TestSearchFeed(t *testing.T) {
 		DateTimeFormat: time.RFC1123Z,
 	}
 
-	t.Run("正常系: searchFeedの第2引数の範囲内の時間に追加されたコンテンツのみ取得する。", func(t *testing.T) {
-		expectedFeed := []Feed{
-			{
-				Title: "Test Title 1",
-				URL:   "http://example.com/1",
+	cases := []struct {
+		testName     string
+		searchRange  time.Duration
+		expectedFeed []Feed
+	}{
+		{
+			testName:    "searchFeedの第2引数の時間範囲内に追加されたコンテンツのみ取得する。",
+			searchRange: time.Hour,
+			expectedFeed: []Feed{
+				{
+					Title: "Test Title 1",
+					URL:   "http://example.com/1",
+				},
+				{
+					Title: "Test Title 2",
+					URL:   "http://example.com/2",
+				},
 			},
-		}
+		},
+	}
+	for _, tt := range cases {
+		t.Run(tt.testName, func(t *testing.T) {
 
-		actualFeed, err := SearchFeed(testSite, time.Hour)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+			actualFeed, err := SearchFeed(testSite, time.Hour)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
-		if !reflect.DeepEqual(actualFeed, expectedFeed) {
-			t.Errorf("actualFeed = %#v, expectedFeed = %#v", actualFeed, expectedFeed)
-		}
-	})
+			if !reflect.DeepEqual(actualFeed, tt.expectedFeed) {
+				t.Errorf("actualFeed = %#v, expectedFeed = %#v", actualFeed, tt.expectedFeed)
+			}
+		})
+	}
 }
