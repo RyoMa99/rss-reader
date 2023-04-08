@@ -26,21 +26,7 @@ func main() {
 	logger.Init()
 	conf = config.Init()
 
-	numSites := len(constant.SITE_LIST)
-	c := make(chan []Feed, numSites)
-	wg := &sync.WaitGroup{}
-	for _, Site := range constant.SITE_LIST {
-		logger.Info("Search new feed", zap.String("サイト名", Site.Name))
-		wg.Add(1)
-		go SearchFeed(Site, time.Duration(conf.Range)*time.Hour, c, wg)
-	}
-	wg.Wait()
-
-	feeds := make([]Feed, 0)
-	for i := 0; i < numSites; i++ {
-		feed := <-c
-		feeds = append(feeds, feed...)
-	}
+	feeds := searchFeedConcurrently()
 	logger.Info(fmt.Sprintf("total feed count: %d", len(feeds)))
 
 	client, err := linebot.New(os.Getenv("CHANNEL_SECRET"), os.Getenv("CHANNEL_ACCESS_TOKEN"))
@@ -65,30 +51,53 @@ func pushFeed2Line(client *linebot.Client, feeds []Feed) error {
 	return nil
 }
 
-func SearchFeed(site constant.Site, searchRange time.Duration, c chan []Feed, wg *sync.WaitGroup) {
-	defer wg.Done()
+func searchFeedConcurrently() []Feed {
+	var wg sync.WaitGroup
+	c := make(chan []Feed, len(constant.SITE_LIST))
 
+	for _, site := range constant.SITE_LIST {
+		logger.Info("Search new feed", zap.String("サイト名", site.Name))
+
+		go func(s constant.Site) {
+			defer wg.Done()
+			feeds, err := SearchFeed(s, time.Duration(conf.Range)*time.Hour)
+			if err != nil {
+				logger.Error(err.Error())
+			}
+			c <- feeds
+		}(site)
+
+		wg.Add(1)
+	}
+	wg.Wait()
+	close(c)
+
+	feeds := make([]Feed, 0)
+	for feed := range c {
+		feeds = append(feeds, feed...)
+	}
+	return feeds
+}
+
+func SearchFeed(site constant.Site, searchRange time.Duration) ([]Feed, error) {
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(site.URL)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to parse URL: %s", err))
-		return
+		return nil, err
 	}
 
-	feed := make([]Feed, 0, len(fd.Items))
+	feeds := make([]Feed, 0, len(fd.Items))
 	for _, item := range fd.Items {
 		publishedTime, err := time.Parse(site.DateTimeFormat, item.Published)
 		if err != nil {
 			continue
 		}
 		if publishedTime.Add(searchRange).After(time.Now()) {
-			feed = append(feed, Feed{
+			feeds = append(feeds, Feed{
 				Title: item.Title,
 				URL:   item.Link,
 			})
 		}
 	}
-	logger.Info(fmt.Sprintf("new feed count: %d", len(feed)), zap.String("サイト名", site.Name))
-
-	c <- feed
+	return feeds, nil
 }
