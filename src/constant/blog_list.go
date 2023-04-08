@@ -329,6 +329,11 @@ var SITE_LIST = []Site{
 		URL:            "https://jinjor-labo.hatenablog.com/feed",
 		DateTimeFormat: time.RFC3339,
 	},
+	{
+		Name:           "Neo's world",
+		URL:            "https://neos21.net/feeds.xml",
+		DateTimeFormat: time.RFC3339,
+	},
 }
 
 // rss未対応
