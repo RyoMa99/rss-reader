@@ -6,6 +6,7 @@ import (
 	"app/infra/logger"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/line/line-bot-sdk-go/linebot"
@@ -25,15 +26,20 @@ func main() {
 	logger.Init()
 	conf = config.Init()
 
-	var feeds []Feed
+	numSites := len(constant.SITE_LIST)
+	c := make(chan []Feed, numSites)
+	wg := &sync.WaitGroup{}
 	for _, Site := range constant.SITE_LIST {
 		logger.Info("Search new feed", zap.String("サイト名", Site.Name))
-		f, err := SearchFeed(Site, time.Duration(conf.Range)*time.Hour)
-		if err != nil {
-			logger.Error("failed to fetch rss", zap.String("サイト名", Site.Name))
-		}
-		logger.Info(fmt.Sprintf("new feed count: %d", len(f)), zap.String("サイト名", Site.Name))
-		feeds = append(feeds, f...)
+		wg.Add(1)
+		go SearchFeed(Site, time.Duration(conf.Range)*time.Hour, c, wg)
+	}
+	wg.Wait()
+
+	feeds := make([]Feed, 0)
+	for i := 0; i < numSites; i++ {
+		feed := <-c
+		feeds = append(feeds, feed...)
 	}
 	logger.Info(fmt.Sprintf("total feed count: %d", len(feeds)))
 
@@ -59,11 +65,14 @@ func pushFeed2Line(client *linebot.Client, feeds []Feed) error {
 	return nil
 }
 
-func SearchFeed(site constant.Site, searchRange time.Duration) ([]Feed, error) {
+func SearchFeed(site constant.Site, searchRange time.Duration, c chan []Feed, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	fp := gofeed.NewParser()
 	fd, err := fp.ParseURL(site.URL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse URL: %w", err)
+		logger.Error(fmt.Sprintf("failed to parse URL: %s", err))
+		return
 	}
 
 	feed := make([]Feed, 0, len(fd.Items))
@@ -79,6 +88,7 @@ func SearchFeed(site constant.Site, searchRange time.Duration) ([]Feed, error) {
 			})
 		}
 	}
+	logger.Info(fmt.Sprintf("new feed count: %d", len(feed)), zap.String("サイト名", site.Name))
 
-	return feed, nil
+	c <- feed
 }
