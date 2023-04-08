@@ -37,24 +37,22 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("total feed count: %d", len(feeds)))
 
-	err := pushFeed2Line(feeds)
+	client, err := linebot.New(os.Getenv("CHANNEL_SECRET"), os.Getenv("CHANNEL_ACCESS_TOKEN"))
 	if err != nil {
+		logger.Panic("failed to connect line bot")
+	}
+
+	if err := pushFeed2Line(client, feeds); err != nil {
 		logger.Panic(fmt.Sprintf("failed to push to line: %s", err.Error()))
 	}
 	logger.Info("fin")
 }
 
-func pushFeed2Line(feeds []Feed) error {
-	bot, err := linebot.New(os.Getenv("CHANNEL_SECRET"), os.Getenv("CHANNEL_ACCESS_TOKEN"))
-	if err != nil {
-		return err
-	}
-
+func pushFeed2Line(client *linebot.Client, feeds []Feed) error {
 	for _, feed := range feeds {
 		message := linebot.NewTextMessage(feed.Title + "\n\n" + feed.URL)
 
-		_, err = bot.PushMessage(os.Getenv("CHANNEL_ID"), message).Do()
-		if err != nil {
+		if _, err := client.PushMessage(os.Getenv("CHANNEL_ID"), message).Do(); err != nil {
 			return err
 		}
 	}
