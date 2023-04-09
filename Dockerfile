@@ -1,14 +1,14 @@
-FROM golang:1.20 as build
+FROM --platform=linux/arm64 golang:1.20 as build
 
 WORKDIR /app/src
 
 COPY ./src/go.mod ./
 COPY ./src/go.sum ./
 ENV CGO_ENABLED=0
-RUN go mod download -x
+RUN go mod download
 
 COPY ./src .
-RUN go build -o /feeder .
+RUN GOARCH=arm64 go build -o /feeder .
 
 FROM scratch AS runtime
 
