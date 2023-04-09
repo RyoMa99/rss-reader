@@ -11,10 +11,11 @@ go run main.go
 
 ## docker image build
 ```bash
-docker build -t rss-reader .
+registry_domain=
+docker build -t ${registry_domain:?}/rss-reader:$(git rev-parse --short master) .
 ```
 
 ## docker image run
 ```bash
-docker run --mount type=bind,source="$(pwd)"/config.dev.yaml,target=/config/config.yaml rss-reader
+docker run --mount type=bind,source="$(pwd)"/config.dev.yaml,target=/config/config.yaml ${registry_domain:?}/rss-reader:$(git rev-parse --short master)
 ```
