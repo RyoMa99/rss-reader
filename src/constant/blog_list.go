@@ -334,6 +334,11 @@ var SITE_LIST = []Site{
 		URL:            "https://neos21.net/feeds.xml",
 		DateTimeFormat: time.RFC3339,
 	},
+	{
+		Name:           "帰ってきた「しっぽのさきっちょ」",
+		URL:            "https://text.baldanders.info/index.xml",
+		DateTimeFormat: time.RFC3339,
+	},
 }
 
 // rss未対応
