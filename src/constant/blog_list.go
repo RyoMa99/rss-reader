@@ -60,6 +60,41 @@ var SITE_LIST = []Site{
 		DateTimeFormat: time.RFC1123,
 	},
 	{
+		Name:           "SIOS セキュリティブログ",
+		URL:            "https://security.sios.jp/feed/",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "千里霧中",
+		URL:            "https://goyoki.hatenablog.com/rss",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "ぷらすのブログ",
+		URL:            "https://blog.p1ass.com/index.xml",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "valid,invalid",
+		URL:            "https://ohbarye.hatenablog.jp/rss",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "Voicy Tech Blog",
+		URL:            "https://tech-blog.voicy.jp/rss",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "SST バックヤード",
+		URL:            "https://techblog.securesky-tech.com/rss",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "RyotaK's Blog",
+		URL:            "https://blog.ryotak.net/index.xml",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
 		Name:           "JSer.info",
 		URL:            "https://jser.info/rss/",
 		DateTimeFormat: time.RFC1123,
@@ -97,6 +132,11 @@ var SITE_LIST = []Site{
 	{
 		Name:           "Zenn Topics Go",
 		URL:            "https://zenn.dev/topics/go/feed",
+		DateTimeFormat: time.RFC1123,
+	},
+	{
+		Name:           "Golang News",
+		URL:            "https://golangnews.com/index.xml",
 		DateTimeFormat: time.RFC1123,
 	},
 	{
