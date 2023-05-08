@@ -370,6 +370,16 @@ var SITE_LIST = []Site{
 		DateTimeFormat: time.RFC3339,
 	},
 	{
+		Name:           "ZDNet Japan 最新情報 総合",
+		URL:            "https://www.watch.impress.co.jp/data/rss/1.0/ipw/feed.rdf",
+		DateTimeFormat: time.RFC3339,
+	},
+	{
+		Name:           "Impress Watch",
+		URL:            "http://feeds.japan.zdnet.com/rss/zdnet/all.rdf",
+		DateTimeFormat: time.RFC3339,
+	},
+	{
 		Name:           "Neo's world",
 		URL:            "https://neos21.net/feeds.xml",
 		DateTimeFormat: time.RFC3339,
